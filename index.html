@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+
+      #progress {
+        height: 100%;
+        width: 0%;
+        background-color: #76c7c0;
+      }
+
+      #time-remaining {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .buttons button {
+        font-size: 16px;
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        background-color: #76c7c0;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        outline: none;
+      }
+
+      .buttons button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #time-input {
+        margin: 0.6rem 0;
+        border: 1px solid black;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Work Timer</h1>
+
+      <!-- Input field to change the timer duration -->
+      <label for="time-input">Set Timer (in minutes):</label>
+      <input type="number" id="time-input" value="20" min="1" max="120" />
+
+      <div class="progress-bar">
+        <div id="progress"></div>
+      </div>
+      <div id="time-remaining">20:00</div>
+      <div class="buttons">
+        <button id="start">Start</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+        <button id="stop-music">Stop Music</button>
+      </div>
+    </div>
+
+    <!-- Audio element for the alarm sound -->
+    <audio id="alarm-sound" src="alarm.wav" preload="auto" loop></audio>
+
+    <script>
+      let interval;
+      let timeLeft;
+      let isPaused = true;
+
+      const startButton = document.getElementById("start");
+      const pauseButton = document.getElementById("pause");
+      const resetButton = document.getElementById("reset");
+      const stopMusicButton = document.getElementById("stop-music");
+      const timeDisplay = document.getElementById("time-remaining");
+      const progressBar = document.getElementById("progress");
+      const alarmSound = document.getElementById("alarm-sound");
+      const timeInput = document.getElementById("time-input");
+
+      startButton.addEventListener("click", startTimer);
+      pauseButton.addEventListener("click", pauseTimer);
+      resetButton.addEventListener("click", resetTimer);
+      stopMusicButton.addEventListener("click", stopMusic);
+      timeInput.addEventListener("change", updateTimerDuration);
+
+      function startTimer() {
+        if (!interval) {
+          interval = setInterval(updateTimer, 1000);
+        }
+        isPaused = false;
+        startButton.disabled = true;
+        pauseButton.disabled = false;
+        stopMusicButton.disabled = false;
+      }
+
+      function pauseTimer() {
+        isPaused = true;
+        clearInterval(interval);
+        interval = null;
+        startButton.disabled = false;
+        pauseButton.disabled = true;
+      }
+
+      function resetTimer() {
+        pauseTimer();
+        updateTimerDuration();
+        updateDisplay();
+      }
+
+      function stopMusic() {
+        alarmSound.pause(); // Stop the music
+        alarmSound.currentTime = 0; // Reset the audio to the start
+        stopMusicButton.disabled = true;
+        resetTimer(); // Restart the timer after stopping the music
+        startTimer(); // Start the timer again
+      }
+
+      function updateTimer() {
+        if (!isPaused) {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateDisplay();
+          } else {
+            alarmSound.play(); // Play the alarm sound when time is up
+            resetTimer(); // Reset the timer immediately
+            startTimer(); // Restart the timer automatically
+          }
+        }
+      }
+
+      function updateTimerDuration() {
+        timeLeft = parseInt(timeInput.value) * 60;
+        updateDisplay();
+      }
+
+      function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timeDisplay.innerText = `${minutes}:${
+          seconds < 10 ? "0" + seconds : seconds
+        }`;
+        progressBar.style.width = `${
+          (1 - timeLeft / (parseInt(timeInput.value) * 60)) * 100
+        }%`;
+      }
+
+      // Initialize the timer with the input value
+      updateTimerDuration();
+    </script>
+  </body>
+</html>
